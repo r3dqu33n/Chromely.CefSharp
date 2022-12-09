@@ -44,7 +44,7 @@ namespace Chromely.CefSharp
 
         protected void NativeHost_CreateAndShowWindow()
         {
-            _nativeHost?.CreateWindow(_config.WindowOptions, _config.DebuggingMode);
+            _nativeHost?.CreateWindow();
         }
 
         protected void NativeHost_Run()

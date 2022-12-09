@@ -5,6 +5,7 @@ using CefSharp;
 using CefSharp.Handler;
 using Chromely.Core.Configuration;
 using Chromely.Core.Network;
+using System.Linq;
 
 namespace Chromely.CefSharp.Browser
 {
@@ -15,17 +16,17 @@ namespace Chromely.CefSharp.Browser
         protected readonly IChromelyConfiguration _config;
         protected readonly IChromelyRequestSchemeHandlerProvider _requestSchemeHandlerProvider;
         protected readonly IResourceRequestHandler _resourceRequestHandler;
-        protected readonly IChromelyCommandTaskRunner _commandTaskRunner;
+        //protected readonly IChromelyCommandTaskRunner _commandTaskRunner;
 
         public DefaultRequestHandler(IChromelyConfiguration config,
                                      IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider,
-                                     IResourceRequestHandler resourceRequestHandler,
-                                     IChromelyCommandTaskRunner commandTaskRunner)
+                                     IResourceRequestHandler resourceRequestHandler)
+                                     //IChromelyCommandTaskRunner commandTaskRunner)
         {
             _config = config;
             _requestSchemeHandlerProvider = requestSchemeHandlerProvider;
             _resourceRequestHandler = resourceRequestHandler;
-            _commandTaskRunner = commandTaskRunner;
+            //_commandTaskRunner = commandTaskRunner;
         }
 
         protected override bool OnBeforeBrowse(IWebBrowser ChromiumBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
@@ -37,12 +38,12 @@ namespace Chromely.CefSharp.Browser
                 return true;
             }
 
-            var isUrlCommand = _config?.UrlSchemes?.IsUrlRegisteredCommandScheme(request.Url);
-            if (isUrlCommand.HasValue && isUrlCommand.Value)
-            {
-                _commandTaskRunner.RunAsync(request.Url);
-                return true;
-            }
+            //var isUrlCommand = _config?.UrlSchemes?.IsUrlRegisteredCommandScheme(request.Url);
+            //if (isUrlCommand.HasValue && isUrlCommand.Value)
+            //{
+            //    _commandTaskRunner.RunAsync(request.Url);
+            //    return true;
+            //}
 
             return false;
         }

@@ -25,8 +25,9 @@ namespace Chromely.CefSharp
 
             services.TryAddSingleton<IChromelyInfo, ChromelyInfo>();
             services.TryAddSingleton<IChromelyRouteProvider, DefaultRouteProvider>();
-            services.TryAddSingleton<IChromelyRequestTaskRunner, DefaultRequestTaskRunner>();
-            services.TryAddSingleton<IChromelyCommandTaskRunner, DefaultCommandTaskRunner>();
+            services.TryAddSingleton<IChromelyDataTransferOptions, DataTransferOptions>();
+            services.TryAddSingleton<IChromelyModelBinder, DefaultModelBinder>();
+            services.TryAddSingleton<IChromelyRequestHandler, DefaultActionRequestHandler>();
 
             services.TryAddSingleton<IChromelyWindow, Window>();
             services.TryAddSingleton<ChromelyWindowController, WindowController>();

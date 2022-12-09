@@ -111,9 +111,9 @@ namespace Chromely.CefSharp.Browser
                         cefSettings.UserAgent = setting.Value;
                         break;
 
-                    case CefSettingKeys.PRODUCTVERSION:
-                        cefSettings.ProductVersion = setting.Value;
-                        break;
+                    //case CefSettingKeys.PRODUCTVERSION:
+                    //    cefSettings.ProductVersion = setting.Value;
+                    //    break;
 
                     case CefSettingKeys.LOCALE:
                         cefSettings.Locale = setting.Value;
@@ -188,13 +188,13 @@ namespace Chromely.CefSharp.Browser
 
                         break;
 
-                    case CefSettingKeys.IGNORECERTIFICATEERRORS:
-                        if (setting.Value.TryParseBoolean(out boolResult))
-                        {
-                            cefSettings.IgnoreCertificateErrors = boolResult;
-                        }
+                    //case CefSettingKeys.IGNORECERTIFICATEERRORS:
+                    //    if (setting.Value.TryParseBoolean(out boolResult))
+                    //    {
+                    //        cefSettings.IgnoreCertificateErrors = boolResult;
+                    //    }
 
-                        break;
+                    //    break;
 
                     case CefSettingKeys.ACCEPTLANGUAGELIST:
                         cefSettings.AcceptLanguageList = setting.Value;

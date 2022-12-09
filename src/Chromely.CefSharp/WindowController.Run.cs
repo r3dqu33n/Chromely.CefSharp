@@ -2,6 +2,7 @@
 // Use of this source code is governed by Chromely MIT licensed and CefSharp BSD-style license that can be found in the LICENSE file.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using CefSharp;
@@ -53,7 +54,7 @@ namespace Chromely.CefSharp
             var localFolder = _config.AppExeLocation;
             if (string.IsNullOrWhiteSpace(localFolder))
             {
-                var codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                var codeBase = Assembly.GetExecutingAssembly().Location;
                 localFolder = Path.GetDirectoryName(new Uri(codeBase).LocalPath);
             }
             var localesDirPath = Path.Combine(localFolder ?? throw new InvalidOperationException(), "locales");
@@ -69,10 +70,18 @@ namespace Chromely.CefSharp
                 LogFile = "logs\\chromely.cef_" + DateTime.Now.ToString("yyyyMMdd") + ".log",
             };
 
+            var opts = new List<string>
+            {
+                "allow-universal-access-from-files",
+                "allow-file-access-from-files",
+                "disable-web-security"
+            };
+
             // Update configuration settings
             _settings.Update(_config.CustomSettings);
             _settings.UpdateCommandOptions(_config.CommandLineOptions);
             _settings.UpdateCommandLineArgs(_config.CommandLineArgs);
+            _settings.UpdateCommandOptions(opts);
 
             // If MultiThreadedMessageLoop is overriden in Setting using CustomSettings, then
             // It is assumed that the developer way not be aware of IWindowOptions - UseOnlyCefMessageLoop

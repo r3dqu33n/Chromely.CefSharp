@@ -41,13 +41,12 @@ namespace Chromely.CefSharp.Browser
         /// Initializes a new instance of the <see cref="ChromelyBoundObjectHandler"/> class.
         /// </summary>
         public ChromelyBoundObjectHandler(IChromelyRouteProvider routeProvider, 
-                                          IChromelyRequestTaskRunner requestTaskRunner, 
-                                          IChromelyCommandTaskRunner commandTaskRunner,
-                                          IChromelySerializerUtil serializerUtil)
+                                            IChromelyRequestHandler requestHandler,
+                                            IChromelyDataTransferOptions dataTransferOptions)
         {
             Key = JsObjectBinding.DEFAULTNAME;
             ObjectName = JsObjectBinding.DEFAULTNAME;
-            BoundObject = new DefaultBoundObject(routeProvider, requestTaskRunner, commandTaskRunner, serializerUtil);
+            BoundObject = new DefaultBoundObject(routeProvider, requestHandler, dataTransferOptions);
             BindingOptions = null;
         }
 
@@ -77,10 +76,11 @@ namespace Chromely.CefSharp.Browser
     internal sealed class ChromelyRequestSchemeHandler : DefaultRequestSchemeHandler, IDefaultRequestCustomHandler
     {
         public ChromelyRequestSchemeHandler(IChromelyRouteProvider routeProvider, 
-                                            IChromelyRequestTaskRunner requestTaskRunner,
                                             IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider,
-                                            IChromelySerializerUtil serializerUtil)
-            : base(routeProvider, requestTaskRunner, requestSchemeHandlerProvider, serializerUtil)
+                                            IChromelyRequestHandler requestHandler,
+                                            IChromelyDataTransferOptions dataTransferOptions,
+                                            IChromelyErrorHandler errorHandler)
+            : base(routeProvider, requestSchemeHandlerProvider, requestHandler, dataTransferOptions, errorHandler)
         {
         }
     }
@@ -112,16 +112,16 @@ namespace Chromely.CefSharp.Browser
 
     internal sealed class ChromelyLifeSpanHandler : DefaultLifeSpanHandler, IDefaultCustomHandler
     {
-        public ChromelyLifeSpanHandler(IChromelyConfiguration config, IChromelyCommandTaskRunner commandTaskRunner)
-            :base(config, commandTaskRunner)
+        public ChromelyLifeSpanHandler(IChromelyConfiguration config/*, IChromelyCommandTaskRunner commandTaskRunner*/)
+            :base(config)//, commandTaskRunner)
         {
         }
     }
 
     internal sealed class ChromelyRequestHandler : DefaultRequestHandler, IDefaultCustomHandler
     {
-        public ChromelyRequestHandler(IChromelyConfiguration config, IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider, IResourceRequestHandler resourceRequestHandler, IChromelyCommandTaskRunner commandTaskRunner)
-                : base(config, requestSchemeHandlerProvider, resourceRequestHandler, commandTaskRunner)
+        public ChromelyRequestHandler(IChromelyConfiguration config, IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider, IResourceRequestHandler resourceRequestHandler)
+                : base(config, requestSchemeHandlerProvider, resourceRequestHandler)
         {
         }
     }

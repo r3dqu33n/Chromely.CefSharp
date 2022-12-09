@@ -12,6 +12,11 @@ namespace Chromely.CefSharp.Browser
 
         public event EventHandler<DownloadItem> OnDownloadUpdatedFired;
 
+        public bool CanDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, string url, string requestMethod)
+        {
+            return true;
+        }
+
         public void OnBeforeDownload(IWebBrowser ChromiumBrowser, IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
         {
             OnBeforeDownloadFired?.Invoke(this, downloadItem);

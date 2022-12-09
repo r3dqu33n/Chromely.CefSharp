@@ -17,11 +17,10 @@ namespace Chromely.CefSharp
                                 IChromelyNativeHost nativeHost, 
                                 IChromelyConfiguration config, 
                                 IChromelyRouteProvider routeProvider, 
-                                IChromelyRequestTaskRunner requestTaskRunner, 
-                                IChromelyCommandTaskRunner commandTaskRunner,
+                                IChromelyRequestHandler requestHandler, 
                                 IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider,
                                 ChromelyHandlersResolver handlersResolver)
-            : base(window, nativeHost, config, routeProvider, requestTaskRunner, commandTaskRunner, handlersResolver)
+            : base(window, nativeHost, config, routeProvider, requestHandler, handlersResolver)
         {
             // WindowController.NativeWindow
             _nativeHost.HostCreated += OnWindowCreated;

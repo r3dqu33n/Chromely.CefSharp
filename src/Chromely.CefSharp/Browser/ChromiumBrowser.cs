@@ -3,7 +3,9 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using CefSharp;
+using CefSharp.DevTools.DOM;
 using CefSharp.Internals;
 using Chromely.Core.Configuration;
 using Chromely.Core.Host;
@@ -76,6 +78,11 @@ namespace Chromely.CefSharp.Browser
         /// Used as workaround for issue https://github.com/cefsharp/CefSharp/issues/3021
         /// </summary>
         protected long _canExecuteJavascriptInMainFrameId;
+
+        /// <summary>
+        /// Initial browser load task complection source
+        /// </summary>
+        private TaskCompletionSource<LoadUrlAsyncResponse> _initialLoadTaskCompletionSource = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ChromiumBrowser"/> class.
@@ -498,9 +505,10 @@ namespace Chromely.CefSharp.Browser
                     Address = _config?.StartUrl;
 
                     _browserSettings.DefaultEncoding = "UTF-8";
-                    _browserSettings.FileAccessFromFileUrls = CefState.Enabled;
-                    _browserSettings.UniversalAccessFromFileUrls = CefState.Enabled;
-                    _browserSettings.WebSecurity = CefState.Disabled;
+                    //  removed in CefSharp95
+                    //_browserSettings.FileAccessFromFileUrls = CefState.Enabled;
+                    //_browserSettings.UniversalAccessFromFileUrls = CefState.Enabled;
+                    //_browserSettings.WebSecurity = CefState.Disabled;
 
                     _managedCefBrowserAdapter.CreateBrowser(windowInfo, _browserSettings, _requestContext, Address);
                 }
@@ -721,6 +729,11 @@ namespace Chromely.CefSharp.Browser
         }
 
         public IAudioHandler AudioHandler { get; set; }
+        public IDisposable DevToolsContext { get; set; }
+        public IFrameHandler FrameHandler { get; set; }
+        public IPermissionHandler PermissionHandler { get; set; }
+
+        public IBrowser BrowserCore => _browser;
 
         /// <summary>
         /// Returns the current IBrowser Instance
@@ -731,7 +744,91 @@ namespace Chromely.CefSharp.Browser
             return _browser;
         }
 
-        bool IWebBrowser.Focus()
+        public Task<LoadUrlAsyncResponse> WaitForInitialLoadAsync()
+        {
+            return _initialLoadTaskCompletionSource.Task;
+        }
+
+        public bool TryGetBrowserCoreById(int browserId, out IBrowser browser)
+        {
+            var browserAdapter = _managedCefBrowserAdapter;
+
+            if (IsDisposed || browserAdapter == null || browserAdapter.IsDisposed)
+            {
+                browser = null;
+
+                return false;
+            }
+
+            browser = browserAdapter.GetBrowser(browserId);
+
+            return browser != null;
+        }
+
+        public async Task<Rect> GetContentSizeAsync()
+        {
+            using (var devToolsClient = _browser.GetDevToolsClient())
+            {
+                //Get the content size
+                var layoutMetricsResponse = await devToolsClient.Page.GetLayoutMetricsAsync().ConfigureAwait(continueOnCapturedContext: false);
+
+                return layoutMetricsResponse.CssContentSize;
+            }
+        }
+
+        public void LoadUrl(string url)
+        {
+            Load(url);
+        }
+
+        private void Load(string url)
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            var browserCore = BrowserCore;
+
+            //There's a small window here between CreateBrowser
+            //and OnAfterBrowserCreated where the Address prop
+            //will be updated, no MainFrame.LoadUrl call will be made.
+            if (browserCore == null)
+            {
+                Address = url;
+            }
+            else
+            {
+                if (browserCore.IsDisposed)
+                {
+                    return;
+                }
+
+                using (var frame = browserCore.MainFrame)
+                {
+                    //Only attempt to call load if frame is valid
+                    //I've seen so far one case where the MainFrame is invalid.
+                    //As yet unable to reproduce
+                    if (frame.IsValid)
+                    {
+                        frame.LoadUrl(url);
+                    }
+                }
+            }
+        }
+
+        public Task<LoadUrlAsyncResponse> LoadUrlAsync(string url)
+        {
+            //LoadUrlAsync is actually a static method so that CefSharp.Wpf.HwndHost can reuse the code
+            return WebBrowserExtensions.LoadUrlAsync(this, url);
+        }
+
+        public Task<WaitForNavigationAsyncResponse> WaitForNavigationAsync(TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        {
+            return WebBrowserExtensions.WaitForNavigationAsync(this, timeout, cancellationToken);
+        }
+
+        public bool Focus()
         {
             return true;
         }

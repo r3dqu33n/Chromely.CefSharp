@@ -7,15 +7,16 @@ using Chromely.Core.Network;
 
 namespace Chromely.CefSharp.Browser
 {
+
     public class DefaultLifeSpanHandler : ILifeSpanHandler
     {
         protected readonly IChromelyConfiguration _config;
-        protected readonly IChromelyCommandTaskRunner _commandTaskRunner;
+        //protected readonly IChromelyCommandTaskRunner _commandTaskRunner;
 
-        public DefaultLifeSpanHandler(IChromelyConfiguration config, IChromelyCommandTaskRunner commandTaskRunner)
+        public DefaultLifeSpanHandler(IChromelyConfiguration config/*, IChromelyCommandTaskRunner commandTaskRunner*/)
         {
             _config = config;
-            _commandTaskRunner = commandTaskRunner;
+            //_commandTaskRunner = commandTaskRunner;
         }
 
         bool ILifeSpanHandler.OnBeforePopup(IWebBrowser ChromiumBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
@@ -34,12 +35,12 @@ namespace Chromely.CefSharp.Browser
                 return true;
             }
 
-            var isUrlCommand = _config?.UrlSchemes?.IsUrlRegisteredCommandScheme(targetUrl);
-            if (isUrlCommand.HasValue && isUrlCommand.Value)
-            {
-                _commandTaskRunner.RunAsync(targetUrl);
-                return true;
-            }
+            //var isUrlCommand = _config?.UrlSchemes?.IsUrlRegisteredCommandScheme(targetUrl);
+            //if (isUrlCommand.HasValue && isUrlCommand.Value)
+            //{
+            //    _commandTaskRunner.RunAsync(targetUrl);
+            //    return true;
+            //}
 
             return false;
         }

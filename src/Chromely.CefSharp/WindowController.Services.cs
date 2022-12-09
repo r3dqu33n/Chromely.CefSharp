@@ -7,7 +7,6 @@ using System.Linq;
 using CefSharp;
 using Chromely.CefSharp.Browser;
 using Chromely.Core;
-using Chromely.Core.Infrastructure;
 using Chromely.Core.Network;
 
 namespace Chromely.CefSharp
@@ -20,7 +19,7 @@ namespace Chromely.CefSharp
                 return;
 
             IDictionary<UrlSchemeType, Type> urlTypesMapper = new Dictionary<UrlSchemeType, Type>();
-            urlTypesMapper.Add(UrlSchemeType.Resource, typeof(IDefaultResourceCustomHandler));
+            urlTypesMapper.Add(UrlSchemeType.LocalResource, typeof(IDefaultResourceCustomHandler));
             urlTypesMapper.Add(UrlSchemeType.AssemblyResource, typeof(IDefaultAssemblyResourceCustomHandler));
 
             foreach (var urlType in urlTypesMapper)

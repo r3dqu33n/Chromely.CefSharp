@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CefSharp;
 using Chromely.Core;
-using Chromely.Core.Configuration;
 using Chromely.Core.Infrastructure;
 using Chromely.Core.Logging;
 using Chromely.Core.Network;
@@ -22,26 +21,29 @@ namespace Chromely.CefSharp.Browser
     public class DefaultRequestSchemeHandler : ResourceHandler
     {
         protected readonly IChromelyRouteProvider _routeProvider;
-        protected readonly IChromelyRequestTaskRunner _requestTaskRunner;
         protected readonly IChromelyRequestSchemeHandlerProvider _requestSchemeHandlerProvider;
-        protected readonly IChromelySerializerUtil _serializerUtil;
-
+        protected readonly IChromelyRequestHandler _requestHandler;
+        protected readonly IChromelyDataTransferOptions _dataTransferOptions;
+        protected readonly IChromelyErrorHandler _chromelyErrorHandler;
         protected IChromelyResponse _chromelyResponse;
+
         protected Stream _stream;
         protected string _mimeType;
         protected byte[] _responseBytes;
         protected bool _completed;
         protected int _totalBytesRead;
 
-        public DefaultRequestSchemeHandler(IChromelyRouteProvider routeProvider, 
-                                           IChromelyRequestTaskRunner requestTaskRunner,
+        public DefaultRequestSchemeHandler(IChromelyRouteProvider routeProvider,
                                            IChromelyRequestSchemeHandlerProvider requestSchemeHandlerProvider,
-                                           IChromelySerializerUtil serializerUtil)
+                                           IChromelyRequestHandler requestHandler,
+                                           IChromelyDataTransferOptions dataTransferOptions,
+                                           IChromelyErrorHandler chromelyErrorHandler)
         {
             _routeProvider = routeProvider;
-            _requestTaskRunner = requestTaskRunner;
             _requestSchemeHandlerProvider = requestSchemeHandlerProvider;
-            _serializerUtil = serializerUtil;
+            _requestHandler = requestHandler;
+            _dataTransferOptions = dataTransferOptions;
+            _chromelyErrorHandler = chromelyErrorHandler;
         }
 
         /// <summary>
@@ -66,7 +68,7 @@ namespace Chromely.CefSharp.Browser
                 var path = uri.LocalPath;
                 _mimeType = "application/json";
 
-                bool isRequestAsync = _routeProvider.IsActionRouteAsync(path);
+                bool isRequestAsync = _routeProvider.IsRouteAsync(path);
                 if (isRequestAsync)
                 {
                     ProcessRequestAsync(path);
@@ -103,11 +105,18 @@ namespace Chromely.CefSharp.Browser
                                 var parameters = request.Url.GetParameters();
                                 var postData = request.GetPostData();
 
-                                _chromelyResponse = _requestTaskRunner.Run(path, parameters, postData);
-                                string jsonData = _serializerUtil.EnsureResponseDataIsJson(_chromelyResponse.Data);
-                                var content = Encoding.UTF8.GetBytes(jsonData);
-                                _stream = new MemoryStream();
-                                _stream.Write(content, 0, content.Length);
+                                var jsonRequest = _dataTransferOptions.ConvertObjectToJson(postData);
+
+                                _chromelyResponse = _requestHandler.Execute(request.Identifier.ToString(), path, parameters, postData, jsonRequest);
+                                
+                                string jsonData = _dataTransferOptions.ConvertResponseToJson(_chromelyResponse.Data);
+
+                                if (jsonData is not null)
+                                {
+                                    var content = Encoding.UTF8.GetBytes(jsonData);
+                                    _stream = new MemoryStream();
+                                    _stream.Write(content, 0, content.Length);
+                                }
                             }
                         }
                         catch (Exception exception)
@@ -162,11 +171,18 @@ namespace Chromely.CefSharp.Browser
                                 var parameters = request.Url.GetParameters();
                                 var postData = request.GetPostData();
 
-                                _chromelyResponse = await _requestTaskRunner.RunAsync(path, parameters, postData);
-                                string jsonData = _serializerUtil.EnsureResponseDataIsJson(_chromelyResponse.Data);
-                                var content = Encoding.UTF8.GetBytes(jsonData);
-                                _stream = new MemoryStream();
-                                _stream.Write(content, 0, content.Length);
+                                var jsonRequest = _dataTransferOptions.ConvertObjectToJson(request);
+
+
+                                _chromelyResponse = await _requestHandler.ExecuteAsync(request.Identifier.ToString(), path, parameters, postData, jsonRequest);
+                                string jsonData = _dataTransferOptions.ConvertResponseToJson(_chromelyResponse.Data);
+
+                                if (jsonData is not null)
+                                {
+                                    var content = Encoding.UTF8.GetBytes(jsonData);
+                                    _stream = new MemoryStream();
+                                    _stream.Write(content, 0, content.Length);
+                                }
                             }
                         }
                         catch (Exception exception)

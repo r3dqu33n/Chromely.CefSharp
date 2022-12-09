@@ -13,8 +13,21 @@ namespace Chromely.CefSharp
     {
         public IChromelyResponse GetInfo(string requestId)
         {
-            var response = new ChromelyResponse(requestId);
+            var response = new ChromelyResponse(requestId)
+            {
+                ReadyState = (int)ReadyState.ResponseIsReady,
+                Status = (int)System.Net.HttpStatusCode.OK,
+                StatusText = "OK",
+                Data = GetInfo()
+            };
+
+            return response;
+        }
+
+        public IDictionary<string, string> GetInfo()
+        {
             var bitness = Environment.Is64BitProcess ? "x64" : "x86";
+
             var chromeVersion = $"Chromium: {Cef.ChromiumVersion}, CEF: {Cef.CefVersion}, CefSharp: {Cef.CefSharpVersion}, Environment: {bitness}";
 
             var infoItemDic = new Dictionary<string, string>
@@ -30,12 +43,7 @@ namespace Chromely.CefSharp
                 { "divVersion", chromeVersion }
             };
 
-            response.ReadyState = (int)ReadyState.ResponseIsReady;
-            response.Status = (int)System.Net.HttpStatusCode.OK;
-            response.StatusText = "OK";
-            response.Data = infoItemDic;
-
-            return response;
+            return infoItemDic;
         }
     }
 }

@@ -36,6 +36,7 @@ namespace Chromely.CefSharp.NativeHost
         protected static RECT DefaultBounds => new RECT(CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT);
         public static NativeHostBase NativeInstance;
         protected static bool WindowInterceptorInitialized = false;
+        protected readonly IChromelyConfiguration _config;
         protected IWindowMessageInterceptor _messageInterceptor;
         protected IWindowOptions _options;
         protected IntPtr _handle;
@@ -52,8 +53,12 @@ namespace Chromely.CefSharp.NativeHost
         public event EventHandler<SizeChangedEventArgs> HostSizeChanged;
         public event EventHandler<CloseEventArgs> HostClose;
 
-        public NativeHostBase(IWindowMessageInterceptor messageInterceptor, IKeyboadHookHandler keyboadHandler)
+        public NativeHostBase(IChromelyConfiguration config, 
+            IWindowMessageInterceptor messageInterceptor, 
+            IKeyboadHookHandler keyboadHandler)
         {
+            _config = config;
+            _options = _config?.WindowOptions ?? new WindowOptions();
             _isInitialized = false;
             _handle = IntPtr.Zero;
             _messageInterceptor = messageInterceptor;
@@ -62,10 +67,9 @@ namespace Chromely.CefSharp.NativeHost
 
         public IntPtr Handle => _handle;
 
-        public unsafe virtual void CreateWindow(IWindowOptions options, bool debugging)
+         public unsafe virtual void CreateWindow()
         {
             _keyboadHandler?.SetNativeHost(this);
-           _options = options;
             _windowFrameless = _options.WindowFrameless;
 
             _wndProc = WndProc;
@@ -677,7 +681,6 @@ namespace Chromely.CefSharp.NativeHost
             }
             catch { }
         }
-
 
         #endregion
 
